@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cargo Foundry</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">🏭 Cargo Foundry</div>
+  <div class="stats">
+    <span id="stat-orders" class="stat">Orders 0/6</span>
+    <span id="stat-delivered" class="stat">Delivered 0</span>
+    <span id="stat-time" class="stat">00:00</span>
+  </div>
+  <div class="top-actions">
+    <button id="btn-help" class="btn">How to play</button>
+    <button id="btn-newmap" class="btn">New map</button>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="toolbar">
+    <h2>Build</h2>
+    <div id="tool-buttons"></div>
+    <p class="tool-desc" id="tool-desc"></p>
+    <p class="hint">Keys 1–7 pick tools.<br>Right-click rotates.<br>Click a placed belt/machine with its own tool to rotate it; click a placed assembler with the assembler tool to switch recipes.</p>
+  </aside>
+
+  <section class="stage">
+    <canvas id="game"></canvas>
+    <div id="toasts"></div>
+  </section>
+
+  <aside class="side">
+    <section class="card">
+      <h2>Shipment orders</h2>
+      <div id="orders"></div>
+    </section>
+    <section class="card">
+      <h2>Recipes</h2>
+      <div id="recipes"></div>
+    </section>
+  </aside>
+</main>
+
+<div class="modal-backdrop" id="help-modal" hidden>
+  <div class="modal">
+    <h2>How to play</h2>
+    <ol>
+      <li><b>Miners</b> (⛏️) go on the orange/gray <b>ore patches</b> and dig ore out of the ground.</li>
+      <li><b>Belts</b> (➡️) carry items. They point right when placed — use <b>Rotate</b> (🔄) or right-click to aim them.</li>
+      <li><b>Furnaces</b> (🔥) smelt ore into plates. <b>Assemblers</b> (⚙️) craft wire, gears, and circuits — click one with the assembler tool to switch recipes.</li>
+      <li>Feed finished goods into the green <b>delivery hub</b> (📦) to fill the <b>shipment orders</b> on the right. Fill all 6 to win.</li>
+    </ol>
+    <p class="modal-tip">Tip: a miner facing a belt facing a furnace facing a belt facing a hub is your first production line. Chain from there.</p>
+    <button class="btn primary" id="btn-close-help">Start building</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="win-modal" hidden>
+  <div class="modal">
+    <h2>🎉 All orders complete!</h2>
+    <p id="win-stats"></p>
+    <div class="modal-actions">
+      <button class="btn primary" id="btn-keep-building">Keep building</button>
+      <button class="btn" id="btn-win-newmap">New map</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/game.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

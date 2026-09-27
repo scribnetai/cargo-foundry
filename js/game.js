@@ -25,8 +25,8 @@ const Game = {
 //   furnace:   { inType, inN, smelting, progress, out: [] }
 //   assembler: { recipe, inbuf: {}, crafting, progress, out: [] }
 //   hub:       {}                               no state; just eats items
-function newBuilding(type) {
-  const b = { type, dir: 1 }; // face right by default
+function newBuilding(type, dir = 1) {
+  const b = { type, dir }; // face `dir` (default right)
   if (type === 'belt') b.items = [];
   if (type === 'miner') b.progress = 0;
   if (type === 'furnace') { b.inType = null; b.inN = 0; b.smelting = null; b.progress = 0; b.out = []; }
@@ -271,7 +271,7 @@ function canPlace(tool, x, y) {
   return { ok: true };
 }
 
-function placeTool(tool, x, y) {
+function placeTool(tool, x, y, dir = 1) {
   const cell = cellAt(x, y);
   const check = canPlace(tool, x, y);
   if (!check.ok) return check;
@@ -288,7 +288,7 @@ function placeTool(tool, x, y) {
     else cell.b.dir = (cell.b.dir + 1) % 4;
     return { ok: true };
   }
-  cell.b = newBuilding(tool);
+  cell.b = newBuilding(tool, dir);
   return { ok: true };
 }
 

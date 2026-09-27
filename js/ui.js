@@ -70,6 +70,10 @@ function itemChip(item) {
 }
 
 // ---- canvas input -------------------------------------------------
+// Drag state for belt laying: null when not dragging, else the last cell
+// a belt was placed/aimed on during this drag.
+let beltDrag = null;
+
 function bindCanvas() {
   canvas.addEventListener('mousemove', (e) => {
     const r = canvas.getBoundingClientRect();
@@ -77,21 +81,59 @@ function bindCanvas() {
     const y = Math.floor((e.clientY - r.top) / (r.height / ROWS));
     hoverCell = inBounds(x, y) ? { x, y } : null; // render.js global
     canvas.style.cursor = selectedTool === 'delete' ? 'not-allowed' : 'crosshair';
+    if (beltDrag) continueBeltDrag();
   });
-  canvas.addEventListener('mouseleave', () => { hoverCell = null; });
-  canvas.addEventListener('click', (e) => {
-    if (!hoverCell) return;
-    const res = placeTool(selectedTool, hoverCell.x, hoverCell.y);
-    if (!res.ok && res.message) toast(res.message);
-    renderOrders(); // assembler recipe clicks change the panel hint
+  canvas.addEventListener('mouseleave', () => { hoverCell = null; beltDrag = null; });
+  // Left button places on mousedown (not click) so belt drags start instantly.
+  canvas.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || !hoverCell) return;
+    applyToolAt(selectedTool, hoverCell.x, hoverCell.y);
+    if (selectedTool === 'belt') beltDrag = { x: hoverCell.x, y: hoverCell.y };
   });
+  window.addEventListener('mouseup', () => { beltDrag = null; });
+  // Scroll wheel rotates the held item: down = clockwise, up = counterclockwise
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault(); // don't scroll the page; rotate instead
+    placeDir = (placeDir + (e.deltaY > 0 ? 1 : 3)) % 4; // render.js global
+  }, { passive: false });
   // Right-click also rotates whatever is under the cursor — handy
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     if (!hoverCell) return;
-    const res = placeTool('rotate', hoverCell.x, hoverCell.y);
-    if (!res.ok && res.message) toast(res.message);
+    applyToolAt('rotate', hoverCell.x, hoverCell.y);
   });
+}
+
+// Apply a tool at a cell; toast on failure (except during drags, which stay quiet)
+function applyToolAt(tool, x, y, quiet) {
+  const res = placeTool(tool, x, y, placeDir); // placeDir: render.js global
+  if (!res.ok && res.message && !quiet) toast(res.message);
+  renderOrders(); // assembler recipe clicks change the panel hint
+  return res;
+}
+
+// While the left button is held with the belt tool, lay belts along the
+// drag path — each new cell gets a belt facing the direction of travel.
+// Dragging over an existing belt re-aims it along the drag instead.
+function continueBeltDrag() {
+  if (!beltDrag || !hoverCell) return;
+  const px = beltDrag.x, py = beltDrag.y;
+  const x = hoverCell.x, y = hoverCell.y;
+  if (x === px && y === py) return;
+  const dx = x - px, dy = y - py;
+  // Face along the dominant axis of movement
+  const dir = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0);
+  const cell = cellAt(x, y);
+  if (!cell) return;
+  if (!cell.b) {
+    if (cell.ore) return; // belts can't go on ore — skip quietly, keep dragging
+    cell.b = newBuilding('belt', dir);
+    beltDrag = { x, y };
+  } else if (cell.b.type === 'belt') {
+    cell.b.dir = dir;
+    beltDrag = { x, y };
+  }
+  // Anything else occupying the cell: skip quietly, keep dragging
 }
 
 // ---- buttons, keys, modals -----------------------------------------

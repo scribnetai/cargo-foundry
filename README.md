@@ -22,6 +22,7 @@ A Factorio-style factory browser game. Mine ore, smelt it into plates, assemble 
 | Right click | Rotate building under cursor |
 | Click a placed belt/machine with its own tool | Rotate it (assembler switches recipe instead) |
 | `Esc` | Close dialogs |
+| 🔊 button (top bar) | Toggle the generative factory soundtrack — starts on your first click, grows as your factory grows |
 
 ### Recipes
 

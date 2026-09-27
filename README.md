@@ -7,7 +7,7 @@ A Factorio-style factory browser game. Mine ore, smelt it into plates, assemble 
 ## How to play
 
 1. **Miners** (⛏️) go on the orange/gray **ore patches** and dig ore out of the ground.
-2. **Belts** (➡️) carry items. They point right when placed — use **Rotate** (🔄) or right-click to aim them.
+2. **Belts** (➡️) carry items. **Scroll** to rotate the ghost before placing, or **click-drag** to lay a whole line of belts facing the drag direction. Right-click rotates anything already placed.
 3. **Furnaces** (🔥) smelt ore into plates. **Assemblers** (⚙️) craft parts — click a placed assembler with the assembler tool to switch recipes.
 4. Feed finished goods into the green **delivery hub** (📦) to fill the **shipment orders** panel. Fill all 6 orders to win, then keep free-building.
 
@@ -17,6 +17,8 @@ A Factorio-style factory browser game. Mine ore, smelt it into plates, assemble 
 |---|---|
 | Keys `1`–`7` | Select toolbar tool |
 | Left click | Place / use selected tool |
+| Left click-drag (belt tool) | Lay belts along the drag path, facing the drag direction |
+| Mouse wheel | Rotate the held item (scroll down = clockwise, up = counterclockwise) |
 | Right click | Rotate building under cursor |
 | Click a placed belt/machine with its own tool | Rotate it (assembler switches recipe instead) |
 | `Esc` | Close dialogs |

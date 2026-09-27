@@ -10,6 +10,7 @@ function initUI() {
   bindCanvas();
   bindButtons();
   bindKeys();
+  bindMusic();
   Game.onEvent = onGameEvent;
   renderOrders();
   setInterval(updateStats, 500);
@@ -134,6 +135,17 @@ function continueBeltDrag() {
     beltDrag = { x, y };
   }
   // Anything else occupying the cell: skip quietly, keep dragging
+}
+
+// ---- factory soundtrack ---------------------------------------------
+function bindMusic() {
+  // Autoplay policy: the AudioContext may only start inside a user gesture,
+  // so the soundtrack kicks in on the player's first click anywhere.
+  window.addEventListener('pointerdown', () => CFMusic.start(), { once: true });
+  const btn = document.getElementById('btn-music');
+  const sync = () => { btn.textContent = CFMusic.isMuted() ? '🔇' : '🔊'; };
+  btn.addEventListener('click', () => { CFMusic.toggle(); sync(); });
+  sync();
 }
 
 // ---- buttons, keys, modals -----------------------------------------

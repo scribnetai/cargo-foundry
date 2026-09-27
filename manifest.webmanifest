@@ -1,0 +1,23 @@
+{
+  "name": "Cargo Foundry",
+  "short_name": "Cargo Foundry",
+  "description": "Factorio-style factory builder \u2014 lay belts, feed the foundry.",
+  "id": "https://cargo-foundry.scribnet.io/",
+  "start_url": "https://cargo-foundry.scribnet.io/",
+  "scope": "https://cargo-foundry.scribnet.io/",
+  "display": "standalone",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

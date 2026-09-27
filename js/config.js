@@ -67,7 +67,7 @@ const ORDERS = [
 
 // Toolbar tools: id, label, hotkey, icon, and the one-line helper text
 const TOOLS = [
-  { id: 'belt',      name: 'Belt',         hotkey: '1', glyph: '➡️', desc: 'Carries items in the direction it faces. Click a placed belt to rotate it.' },
+  { id: 'belt',      name: 'Belt',         hotkey: '1', glyph: '➡️', desc: 'Carries items in the direction it faces. Scroll to rotate the ghost; click-drag to lay a belt line. Click a placed belt to rotate it.' },
   { id: 'miner',     name: 'Miner',        hotkey: '2', glyph: '⛏️', desc: 'Digs ore out of the ground. Must be placed on an ore patch.' },
   { id: 'furnace',   name: 'Furnace',      hotkey: '3', glyph: '🔥', desc: 'Smelts ore into plates: iron ore → iron plate, copper ore → copper plate.' },
   { id: 'assembler', name: 'Assembler',    hotkey: '4', glyph: '⚙️', desc: 'Crafts parts. Click a placed assembler to switch its recipe.' },

@@ -4,11 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cargo Foundry</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=1">
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">🏭 Cargo Foundry</div>
+  <div class="brand-dropdown" id="brandDropdown">
+    <button class="brand" id="brandHome" aria-haspopup="true" aria-expanded="false" title="Switch app">
+      <span>🏭 Cargo Foundry</span>
+      <span class="brand-caret">▾</span>
+    </button>
+    <div class="brand-menu" id="brandMenu" role="menu" aria-label="Switch app"></div>
+  </div>
   <div class="stats">
     <span id="stat-orders" class="stat">Orders 0/6</span>
     <span id="stat-delivered" class="stat">Delivered 0</span>
@@ -77,5 +83,6 @@
 <script src="js/music.js?v=3"></script>
 <script src="js/ui.js?v=3"></script>
 <script src="js/main.js?v=3"></script>
+<script src="js/app-switcher.js?v=1"></script>
 </body>
 </html>

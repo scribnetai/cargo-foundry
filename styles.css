@@ -254,3 +254,16 @@ body {
 @media (max-width: 1500px) {
   .layout { justify-content: flex-start; overflow-x: auto; }
 }
+
+/* ---- app switcher (top-left dropdown) ---- */
+.brand-dropdown{position:relative}
+.topbar button.brand{display:inline-flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:7px 12px;cursor:pointer;font:inherit;font-weight:800;font-size:20px;letter-spacing:.5px}
+.topbar button.brand:hover{border-color:var(--accent)}
+.brand-caret{font-size:.65rem;color:var(--muted)}
+.brand-menu{position:absolute;top:calc(100% + 10px);left:0;min-width:248px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,.5);display:none;z-index:60}
+.brand-dropdown.open .brand-menu{display:block}
+.brand-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:9px;color:var(--text);text-decoration:none;font-size:.9rem;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left;box-sizing:border-box}
+.brand-item:hover{background:rgba(74,222,128,.12)}
+.brand-item .bi{font-size:1.05rem;line-height:1}
+.brand-item.is-current{color:var(--accent);font-weight:700}
+.brand-item .cur{margin-left:auto;font-size:.7rem;color:var(--muted);font-weight:400}

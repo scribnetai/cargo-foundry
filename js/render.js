@@ -10,6 +10,8 @@ let ctx = null;
 // ui.js sets these; render only reads them
 let selectedTool = 'belt';
 let hoverCell = null; // { x, y } | null
+let placeDir = 1;     // compass direction the ghost (and new buildings) face;
+                      // the mouse wheel adjusts it (scroll down = clockwise)
 
 function initRender(c) {
   canvas = c;
@@ -226,7 +228,7 @@ function drawGhost(x, y) {
   const px = x * TILE, py = y * TILE;
   const cx = px + TILE / 2, cy = py + TILE / 2;
   if (check.ok) {
-    const ghost = newBuilding(selectedTool);
+    const ghost = newBuilding(selectedTool, placeDir);
     const cell = cellAt(x, y);
     if (check.reconfigure && cell.b) ghost.dir = cell.b.dir;
     drawBuilding(x, y, ghost);

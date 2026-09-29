@@ -2,7 +2,7 @@
 
 A Factorio-style factory browser game. Mine ore, smelt it into plates, assemble parts, and feed finished goods into delivery hubs to fill shipment orders.
 
-**Play it live:** https://scribnetai.github.io/cargo-foundry/
+**Play it live:** https://cargo-foundry.scribnet.io/
 
 ## How to play
 

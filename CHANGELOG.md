@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-29 — Mobile load fix: guard first-visit localStorage
+- **Bug:** `bindButtons()` read `localStorage` unguarded for the first-visit help flag. On phones/tablets where storage is blocked (e.g. Safari "Block all cookies", locked-down webviews) that access throws, aborting `initUI()` before the game loop starts — the page looked frozen / "not loaded" (static UI shell, blank canvas, dead timer). Now guarded with try/catch; a storage failure can no longer block startup. Touched: js/ui.js (cache-buster bumped to v=5).
+- Known mobile limitation (not fixed here): the layout is desktop-first — on a ~390px phone the page is a ~1500px horizontally scrolling strip, and canvas input is mouse-events only (no touch drag/pinch). Full mobile support (responsive layout + touch controls) is a separate build.
+
 ## 2026-09-28 — Zoom, R-to-rotate, volume slider, port indicators, 2×2 hub
 - **Zoom:** the scroll wheel now zooms the map (0.5×–3×) anchored at the cursor; camera clamps so the map never scrolls off-canvas. Hit-testing is zoom-aware so placement always matches the rendered grid.
 - **R rotates:** the scroll wheel's old job (rotating the held item) moved to the **R** key — ghost included. R is ignored while typing in the feedback form.

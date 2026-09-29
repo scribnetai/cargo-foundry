@@ -184,10 +184,14 @@ function bindButtons() {
   document.getElementById('help-modal').addEventListener('click', (e) => {
     if (e.target.id === 'help-modal') hideModal('help-modal');
   });
-  // Show help on first visit
-  if (!localStorage.getItem('cargo-foundry-seen-help')) {
+  // Show help on first visit. Guarded: on phones/tablets where storage is
+  // blocked (e.g. Safari "Block all cookies"), an unguarded access here
+  // throws and kills the whole init — leaving a frozen, "not loaded" page.
+  let seenHelp = true; // default to seen so a storage failure never blocks the game
+  try { seenHelp = !!localStorage.getItem('cargo-foundry-seen-help'); } catch (e) { /* storage blocked */ }
+  if (!seenHelp) {
     showModal('help-modal');
-    localStorage.setItem('cargo-foundry-seen-help', '1');
+    try { localStorage.setItem('cargo-foundry-seen-help', '1'); } catch (e) { /* ignore */ }
   }
 }
 

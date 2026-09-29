@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-09-29 — Prompts page added to the app-switcher header
+
+- The scribnet.io `/prompts.html` workflow-prompts page is now one click away from the app-switcher dropdown in the header, alongside the other destinations.
 ## 2026-09-29 — Mobile load fix: guard first-visit localStorage
 - **Bug:** `bindButtons()` read `localStorage` unguarded for the first-visit help flag. On phones/tablets where storage is blocked (e.g. Safari "Block all cookies", locked-down webviews) that access throws, aborting `initUI()` before the game loop starts — the page looked frozen / "not loaded" (static UI shell, blank canvas, dead timer). Now guarded with try/catch; a storage failure can no longer block startup. Touched: js/ui.js (cache-buster bumped to v=5).
 - Known mobile limitation (not fixed here): the layout is desktop-first — on a ~390px phone the page is a ~1500px horizontally scrolling strip, and canvas input is mouse-events only (no touch drag/pinch). Full mobile support (responsive layout + touch controls) is a separate build.

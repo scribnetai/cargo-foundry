@@ -11,23 +11,63 @@ let ctx = null;
 let selectedTool = 'belt';
 let hoverCell = null; // { x, y } | null
 let placeDir = 1;     // compass direction the ghost (and new buildings) face;
-                      // the mouse wheel adjusts it (scroll down = clockwise)
+                      // the R key rotates it (R = clockwise)
+
+// ---- zoom camera ------------------------------------------------
+// zoom: pixels per tile multiplier (1 = classic view).
+// camX/camY: camera offset in canvas pixels. ui.js drives the camera
+// through zoomAt() / screenToTile(); all drawing happens in world space
+// (tile * TILE) with the transform applied.
+let zoom = 1, camX = 0, camY = 0;
+const ZOOM_MIN = 0.5, ZOOM_MAX = 3;
+
+function zoomFactor(f, anchorSX, anchorSY) {
+  // Keep the tile under the cursor pinned at the same screen position.
+  const wx = (anchorSX - camX) / (TILE * zoom);
+  const wy = (anchorSY - camY) / (TILE * zoom);
+  zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom * f));
+  camX = anchorSX - wx * TILE * zoom;
+  camY = anchorSY - wy * TILE * zoom;
+  clampCamera();
+}
+
+function clampCamera() {
+  const worldW = COLS * TILE * zoom, worldH = ROWS * TILE * zoom;
+  const W = canvas.width, H = canvas.height;
+  camX = worldW >= W ? Math.min(0, Math.max(W - worldW, camX)) : (W - worldW) / 2;
+  camY = worldH >= H ? Math.min(0, Math.max(H - worldH, camY)) : (H - worldH) / 2;
+}
+
+// Screen (canvas CSS pixel) -> tile coords, zoom-aware. Mirrors ui.js
+// hit-testing so placement always matches the rendered grid.
+function screenToTile(sx, sy) {
+  return {
+    x: Math.floor((sx - camX) / (TILE * zoom)),
+    y: Math.floor((sy - camY) / (TILE * zoom)),
+  };
+}
 
 function initRender(c) {
   canvas = c;
   ctx = c.getContext('2d');
   canvas.width = COLS * TILE;
   canvas.height = ROWS * TILE;
+  clampCamera();
 }
 
 function render() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset to raw canvas pixels
   ctx.fillStyle = '#0b0f14';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  ctx.setTransform(zoom, 0, 0, zoom, camX, camY); // world space: px = tile * TILE
   forEachCell((x, y, cell) => {
     drawTileBase(x, y, cell);
     if (cell.ore) drawOre(x, y, cell.ore);
-    if (cell.b) drawBuilding(x, y, cell.b);
+    // Multi-tile buildings draw once, from their anchor cell
+    if (cell.b && !(cell.b.w > 1 && (cell.b.ax !== x || cell.b.ay !== y))) {
+      drawBuilding(x, y, cell.b);
+    }
   });
 
   drawGridLines();
@@ -35,6 +75,7 @@ function render() {
     drawHoverHighlight(hoverCell.x, hoverCell.y);
     drawGhost(hoverCell.x, hoverCell.y);
   }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 // Deterministic pseudo-random from tile coords so speckles don't flicker
@@ -73,9 +114,57 @@ function drawOre(x, y, ore) {
   }
 }
 
+// A port chevron on the edge of a tile in compass direction `dir`.
+// Output (inward=false): bright green, jutting OUT of the edge so it
+// visually "emits" into the neighbor tile.
+// Input (inward=true): cyan, hugging the edge, pointing inward.
+const PORT_OUT = '#4ade80';
+const PORT_IN = '#38bdf8';
+
+function portChevron(px, py, dir, inward, color) {
+  const d = DIRS[dir];
+  // edge midpoint
+  const ex = px + TILE / 2 + d.x * TILE / 2;
+  const ey = py + TILE / 2 + d.y * TILE / 2;
+  const px2 = -d.y, py2 = d.x; // perpendicular
+  const s = 5; // chevron size
+  ctx.fillStyle = color;
+  ctx.globalAlpha = inward ? 0.75 : 1;
+  ctx.beginPath();
+  if (inward) {
+    // triangle sitting on the edge, tip pointing INTO the tile
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex + px2 * s * 1.4 - d.x * s * 1.8, ey + py2 * s * 1.4 - d.y * s * 1.8);
+    ctx.lineTo(ex - px2 * s * 1.4 - d.x * s * 1.8, ey - py2 * s * 1.4 - d.y * s * 1.8);
+  } else {
+    // triangle straddling the edge, tip pointing OUT of the tile
+    ctx.moveTo(ex + d.x * s * 1.6, ey + d.y * s * 1.6);
+    ctx.lineTo(ex + px2 * s * 1.2, ey + py2 * s * 1.2);
+    ctx.lineTo(ex - px2 * s * 1.2, ey - py2 * s * 1.2);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+// Machine port layout: OUT chevron on the facing edge, IN chevrons on
+// the remaining edges (miners have no inputs — output only).
+function drawMachinePorts(px, py, b, hasInput) {
+  portChevron(px, py, b.dir, false, PORT_OUT);
+  if (hasInput) {
+    for (let d = 0; d < 4; d++) {
+      if (d === b.dir) continue;
+      portChevron(px, py, d, true, PORT_IN);
+    }
+  }
+}
+
 function drawBuilding(x, y, b) {
-  const px = x * TILE, py = y * TILE;
-  const cx = px + TILE / 2, cy = py + TILE / 2;
+  // Multi-tile buildings draw once from their anchor cell; 1x1 buildings
+  // (which may not carry anchor coords) draw at their own cell.
+  const ox = b.w > 1 ? b.ax : x, oy = b.h > 1 ? b.ay : y;
+  const px = ox * TILE, py = oy * TILE;
+  const cx = px + (b.w * TILE) / 2, cy = py + (b.h * TILE) / 2;
   if (b.type === 'belt') drawBelt(px, py, cx, cy, b);
   else if (b.type === 'miner') drawMiner(px, py, cx, cy, b);
   else if (b.type === 'furnace') drawFurnace(px, py, cx, cy, b);
@@ -145,10 +234,8 @@ function drawMiner(px, py, cx, cy, b) {
   ctx.beginPath();
   ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
   ctx.fill();
-  // small direction tick on the output edge
-  const d = DIRS[b.dir];
-  ctx.fillStyle = '#ffd166';
-  ctx.fillRect(cx + d.x * 9 - 1.5, cy + d.y * 9 - 1.5, 3, 3);
+  // ore exits here: bright green output port
+  drawMachinePorts(px, py, b, false);
 }
 
 function drawFurnace(px, py, cx, cy, b) {
@@ -164,6 +251,8 @@ function drawFurnace(px, py, cx, cy, b) {
     ctx.fillStyle = ITEMS[b.out[0]].color;
     ctx.fillRect(cx - 3, cy + 4, 6, 6);
   }
+  // ore in (blue ports) / plates out (green port)
+  drawMachinePorts(px, py, b, true);
 }
 
 function drawAssembler(px, py, cx, cy, b) {
@@ -187,18 +276,60 @@ function drawAssembler(px, py, cx, cy, b) {
     ctx.arc(cx, cy, 8, -Math.PI / 2, -Math.PI / 2 + (b.progress / rec.time) * Math.PI * 2);
     ctx.stroke();
   }
+  // ingredients in (blue ports) / parts out (green port)
+  drawMachinePorts(px, py, b, true);
 }
 
-function drawHub(px, py, cx, cy) {
-  bodyRect(px, py, 1, '#123f22', '#35c759');
-  // little crate glyph
-  ctx.strokeStyle = '#d7ffe0';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(cx - 5, cy - 5, 10, 10);
-  ctx.beginPath();
-  ctx.moveTo(cx - 5, cy - 5); ctx.lineTo(cx + 5, cy + 5);
-  ctx.moveTo(cx + 5, cy - 5); ctx.lineTo(cx - 5, cy + 5);
+// The delivery hub: a 2x2 shipping crate. Drawn once over its whole
+// footprint from the anchor cell. Cyan IN chevrons on all four outer
+// edges say "feed items in from any side"; the down-arrow badge says
+// "drop goods here".
+function drawHub(px, py, cx, cy, b) {
+  const W = b.w * TILE, H = b.h * TILE;
+  // wooden crate body
+  ctx.fillStyle = '#6b4a2a';
+  ctx.strokeStyle = '#3d2a17';
+  ctx.lineWidth = 3;
+  roundRect(px + 2, py + 2, W - 4, H - 4, 6);
+  ctx.fill();
   ctx.stroke();
+  // plank seams
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(px + 3, py + H / 2); ctx.lineTo(px + W - 3, py + H / 2);
+  ctx.moveTo(px + W / 2, py + 3); ctx.lineTo(px + W / 2, py + H - 3);
+  ctx.stroke();
+  // corner brackets
+  ctx.strokeStyle = '#d7a45e';
+  ctx.lineWidth = 2.5;
+  const c = 9;
+  const corners = [[px + 5, py + 5, 1, 1], [px + W - 5, py + 5, -1, 1],
+                   [px + 5, py + H - 5, 1, -1], [px + W - 5, py + H - 5, -1, -1]];
+  for (const [qx, qy, sx, sy] of corners) {
+    ctx.beginPath();
+    ctx.moveTo(qx + sx * c, qy);
+    ctx.lineTo(qx, qy);
+    ctx.lineTo(qx, qy + sy * c);
+    ctx.stroke();
+  }
+  // drop-in badge: dark disc with a white down arrow
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+  ctx.fill();
+  drawArrow(cx, cy - 2, 2, 6, '#ffffff'); // pointing down
+  // IN chevrons along every outer edge, one per tile
+  for (let i = 0; i < b.w; i++) {
+    const ex = px + i * TILE;
+    portChevron(ex, py, 0, true, PORT_IN);                    // top
+    portChevron(ex, py + (b.h - 1) * TILE, 2, true, PORT_IN); // bottom
+  }
+  for (let j = 0; j < b.h; j++) {
+    const ey = py + j * TILE;
+    portChevron(px, ey, 3, true, PORT_IN);                    // left
+    portChevron(px + (b.w - 1) * TILE, ey, 1, true, PORT_IN); // right
+  }
 }
 
 // Thin progress bar along the bottom of a tile while a machine works
@@ -215,9 +346,11 @@ function drawProgressBar(px, py, b) {
 }
 
 function drawHoverHighlight(x, y) {
+  // The hub tool previews a 2x2 footprint; highlight the whole area.
+  const fp = footprint(selectedTool);
   ctx.strokeStyle = 'rgba(255,255,255,0.35)';
   ctx.lineWidth = 2;
-  ctx.strokeRect(x * TILE + 1, y * TILE + 1, TILE - 2, TILE - 2);
+  ctx.strokeRect(x * TILE + 1, y * TILE + 1, fp.w * TILE - 2, fp.h * TILE - 2);
 }
 
 // Translucent preview of what the selected tool would do here
@@ -226,12 +359,16 @@ function drawGhost(x, y) {
   if (selectedTool === 'rotate' || selectedTool === 'delete') return; // no ghost for these
   ctx.globalAlpha = 0.45;
   const px = x * TILE, py = y * TILE;
-  const cx = px + TILE / 2, cy = py + TILE / 2;
   if (check.ok) {
     const ghost = newBuilding(selectedTool, placeDir);
+    ghost.ax = x; ghost.ay = y;
     const cell = cellAt(x, y);
     if (check.reconfigure && cell.b) ghost.dir = cell.b.dir;
     drawBuilding(x, y, ghost);
+  } else if (selectedTool === 'hub') {
+    // red 2x2 preview so the footprint is obvious even when it fails
+    ctx.fillStyle = 'rgba(255,60,60,0.35)';
+    ctx.fillRect(px, py, 2 * TILE, 2 * TILE);
   } else {
     ctx.fillStyle = 'rgba(255,60,60,0.35)';
     ctx.fillRect(px, py, TILE, TILE);

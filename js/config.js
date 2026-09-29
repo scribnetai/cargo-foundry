@@ -67,11 +67,11 @@ const ORDERS = [
 
 // Toolbar tools: id, label, hotkey, icon, and the one-line helper text
 const TOOLS = [
-  { id: 'belt',      name: 'Belt',         hotkey: '1', glyph: '➡️', desc: 'Carries items in the direction it faces. Scroll to rotate the ghost; click-drag to lay a belt line. Click a placed belt to rotate it.' },
-  { id: 'miner',     name: 'Miner',        hotkey: '2', glyph: '⛏️', desc: 'Digs ore out of the ground. Must be placed on an ore patch.' },
-  { id: 'furnace',   name: 'Furnace',      hotkey: '3', glyph: '🔥', desc: 'Smelts ore into plates: iron ore → iron plate, copper ore → copper plate.' },
-  { id: 'assembler', name: 'Assembler',    hotkey: '4', glyph: '⚙️', desc: 'Crafts parts. Click a placed assembler to switch its recipe.' },
-  { id: 'hub',       name: 'Delivery hub', hotkey: '5', glyph: '📦', desc: 'Feed items in here to fill the current shipment order.' },
+  { id: 'belt',      name: 'Belt',         hotkey: '1', glyph: '➡️', desc: 'Carries items in the direction it faces. Scroll to zoom the map; press R to rotate the ghost; click-drag to lay a belt line. Click a placed belt to rotate it.' },
+  { id: 'miner',     name: 'Miner',        hotkey: '2', glyph: '⛏️', desc: 'Digs ore out of the ground. Must be placed on an ore patch. Ore comes OUT of the green port.' },
+  { id: 'furnace',   name: 'Furnace',      hotkey: '3', glyph: '🔥', desc: 'Smelts ore into plates: iron ore → iron plate, copper ore → copper plate. Ore goes IN the blue ports, plates come OUT of the green port.' },
+  { id: 'assembler', name: 'Assembler',    hotkey: '4', glyph: '⚙️', desc: 'Crafts parts. Ingredients go IN the blue ports, parts come OUT of the green port. Click a placed assembler to switch its recipe.' },
+  { id: 'hub',       name: 'Delivery hub', hotkey: '5', glyph: '📦', desc: 'A 2×2 shipping crate. Feed items in from ANY side to fill the current shipment order.' },
   { id: 'rotate',    name: 'Rotate',       hotkey: '6', glyph: '🔄', desc: 'Turns a building clockwise.' },
   { id: 'delete',    name: 'Delete',       hotkey: '7', glyph: '❌', desc: 'Removes a building. Ore patches stay.' },
 ];

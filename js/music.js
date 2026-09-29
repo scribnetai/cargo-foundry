@@ -34,8 +34,13 @@ const CFMusic = (() => {
   let level = 0;        // 0 = starter groove, 1 = +arp, 2 = +extra clank & open filter
   let started = false;
   let muted = false;
+  let volume = 0.5; // 0..1; separate from mute so the slider never unmutes
 
   try { muted = localStorage.getItem('cargo-foundry-music') === 'off'; } catch (e) { /* private mode */ }
+  try {
+    const v = parseFloat(localStorage.getItem('cargo-foundry-volume'));
+    if (!Number.isNaN(v)) volume = Math.min(1, Math.max(0, v));
+  } catch (e) { /* private mode */ }
 
   // ---- setup ----------------------------------------------------
   function ensureCtx() {
@@ -45,7 +50,7 @@ const CFMusic = (() => {
     ctx = new AC();
 
     master = ctx.createGain();
-    master.gain.value = muted ? 0 : 0.5;
+    master.gain.value = muted ? 0 : volume;
     master.connect(ctx.destination);
 
     // Dotted-eighth echo, just for the arp
@@ -181,7 +186,13 @@ const CFMusic = (() => {
   function setMuted(m) {
     muted = m;
     try { localStorage.setItem('cargo-foundry-music', m ? 'off' : 'on'); } catch (e) { /* ignore */ }
-    if (ctx && master) master.gain.linearRampToValueAtTime(m ? 0 : 0.5, ctx.currentTime + 0.15);
+    if (ctx && master) master.gain.linearRampToValueAtTime(m ? 0 : volume, ctx.currentTime + 0.15);
+  }
+
+  function setVolume(v) {
+    volume = Math.min(1, Math.max(0, v));
+    try { localStorage.setItem('cargo-foundry-volume', String(volume)); } catch (e) { /* ignore */ }
+    if (ctx && master && !muted) master.gain.linearRampToValueAtTime(volume, ctx.currentTime + 0.1);
   }
 
   return {
@@ -189,6 +200,8 @@ const CFMusic = (() => {
     toggle() { start(); setMuted(!muted); },
     isMuted: () => muted,
     isPlaying: () => started && !muted,
+    setVolume,
+    getVolume: () => volume,
     _step: () => step, // QA hook: confirm the scheduler is advancing
   };
 })();

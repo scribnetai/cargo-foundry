@@ -78,9 +78,13 @@ let beltDrag = null;
 function bindCanvas() {
   canvas.addEventListener('mousemove', (e) => {
     const r = canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - r.left) / (r.width / COLS));
-    const y = Math.floor((e.clientY - r.top) / (r.height / ROWS));
-    hoverCell = inBounds(x, y) ? { x, y } : null; // render.js global
+    // Map CSS pixels into world tiles — zoom-aware, not a flat fraction.
+    // (getBoundingClientRect scales with the zoom transform since the
+    // canvas's backing pixels stay fixed.)
+    const sx = (e.clientX - r.left) * (canvas.width / r.width);
+    const sy = (e.clientY - r.top) * (canvas.height / r.height);
+    const t = screenToTile(sx, sy); // render.js global
+    hoverCell = inBounds(t.x, t.y) ? { x: t.x, y: t.y } : null;
     canvas.style.cursor = selectedTool === 'delete' ? 'not-allowed' : 'crosshair';
     if (beltDrag) continueBeltDrag();
   });
@@ -92,10 +96,13 @@ function bindCanvas() {
     if (selectedTool === 'belt') beltDrag = { x: hoverCell.x, y: hoverCell.y };
   });
   window.addEventListener('mouseup', () => { beltDrag = null; });
-  // Scroll wheel rotates the held item: down = clockwise, up = counterclockwise
+  // Scroll wheel zooms the map around the cursor (zoomFactor: render.js global)
   canvas.addEventListener('wheel', (e) => {
-    e.preventDefault(); // don't scroll the page; rotate instead
-    placeDir = (placeDir + (e.deltaY > 0 ? 1 : 3)) % 4; // render.js global
+    e.preventDefault(); // don't scroll the page; zoom instead
+    const r = canvas.getBoundingClientRect();
+    const sx = (e.clientX - r.left) * (canvas.width / r.width);
+    const sy = (e.clientY - r.top) * (canvas.height / r.height);
+    zoomFactor(e.deltaY > 0 ? 1 / 1.12 : 1.12, sx, sy);
   }, { passive: false });
   // Right-click also rotates whatever is under the cursor — handy
   canvas.addEventListener('contextmenu', (e) => {
@@ -143,8 +150,16 @@ function bindMusic() {
   // so the soundtrack kicks in on the player's first click anywhere.
   window.addEventListener('pointerdown', () => CFMusic.start(), { once: true });
   const btn = document.getElementById('btn-music');
+  const slider = document.getElementById('vol-slider');
   const sync = () => { btn.textContent = CFMusic.isMuted() ? '🔇' : '🔊'; };
   btn.addEventListener('click', () => { CFMusic.toggle(); sync(); });
+  if (slider) {
+    slider.value = Math.round(CFMusic.getVolume() * 100);
+    slider.addEventListener('input', () => {
+      CFMusic.start();               // start the engine so the volume is audible
+      CFMusic.setVolume(slider.value / 100);
+    });
+  }
   sync();
 }
 
@@ -179,6 +194,11 @@ function bindButtons() {
 function bindKeys() {
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { hideModal('help-modal'); hideModal('win-modal'); return; }
+    // Don't steal keystrokes while the player is typing (feedback form etc.)
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    // R rotates the held item clockwise (was the scroll wheel's job)
+    if (e.key === 'r' || e.key === 'R') { placeDir = (placeDir + 1) % 4; return; }
     const t = TOOLS.find(t => t.hotkey === e.key);
     if (t) selectTool(t.id);
   });

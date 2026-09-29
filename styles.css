@@ -50,7 +50,13 @@ body {
   padding: 4px 12px;
 }
 
-.top-actions { display: flex; gap: 8px; }
+.top-actions { display: flex; gap: 8px; align-items: center; }
+
+.vol-slider {
+  width: 90px;
+  accent-color: #4ade80;
+  cursor: pointer;
+}
 
 .btn {
   background: var(--panel-2);

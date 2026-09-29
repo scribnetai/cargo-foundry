@@ -25,8 +25,18 @@ const Game = {
 //   furnace:   { inType, inN, smelting, progress, out: [] }
 //   assembler: { recipe, inbuf: {}, crafting, progress, out: [] }
 //   hub:       {}                               no state; just eats items
+//
+// Buildings can span multiple tiles (the delivery hub is 2x2). The one
+// building OBJECT is referenced by every cell it covers; ax/ay is the
+// anchor (top-left) tile of the footprint.
+const FOOTPRINTS = { hub: { w: 2, h: 2 } };
+function footprint(type) { return FOOTPRINTS[type] || { w: 1, h: 1 }; }
+
 function newBuilding(type, dir = 1) {
   const b = { type, dir }; // face `dir` (default right)
+  const fp = footprint(type);
+  b.w = fp.w; b.h = fp.h;
+  b.ax = 0; b.ay = 0;      // set for real by placeBuildingAt
   if (type === 'belt') b.items = [];
   if (type === 'miner') b.progress = 0;
   if (type === 'furnace') { b.inType = null; b.inN = 0; b.smelting = null; b.progress = 0; b.out = []; }
@@ -48,10 +58,9 @@ function newWorld() {
     for (let p = 0; p < 3; p++) growOreBlob(ore);
   }
 
-  // One delivery hub pre-placed near the right edge, vertically centered
-  const hx = COLS - 5, hy = Math.floor(ROWS / 2);
-  Game.grid[hy][hx].ore = null;
-  Game.grid[hy][hx].b = newBuilding('hub');
+  // One delivery hub pre-placed near the right edge, vertically centered.
+  // It's a 2x2 shipping crate — stamp it as one building over 4 cells.
+  placeBuildingAt('hub', COLS - 6, Math.floor(ROWS / 2) - 1, 1);
 
   Game.tickCount = 0;
   Game.orderIndex = 0;
@@ -245,6 +254,24 @@ function tick() {
   }
 }
 
+// Stamp a building object over its whole footprint, anchored at (ax, ay).
+// All covered cells reference the same object.
+function placeBuildingAt(type, ax, ay, dir = 1) {
+  const b = newBuilding(type, dir);
+  b.ax = ax; b.ay = ay;
+  for (let dy = 0; dy < b.h; dy++)
+    for (let dx = 0; dx < b.w; dx++) {
+      const cell = cellAt(ax + dx, ay + dy);
+      if (cell) { cell.ore = null; cell.b = b; }
+    }
+  return b;
+}
+
+// Remove every cell of a multi-tile building's footprint.
+function clearBuilding(b) {
+  forEachCell((x, y, cell) => { if (cell.b === b) cell.b = null; });
+}
+
 // ---- building placement -----------------------------------------
 // Shared rule check used by both the ghost preview and real placement.
 function canPlace(tool, x, y) {
@@ -257,6 +284,18 @@ function canPlace(tool, x, y) {
   if (tool === 'delete') {
     if (cell.b) return { ok: true };
     return { ok: false, message: 'Nothing to delete here.' };
+  }
+  if (tool === 'hub') {
+    // 2x2 footprint: every covered cell must be free and ore-free
+    const fp = footprint('hub');
+    for (let dy = 0; dy < fp.h; dy++)
+      for (let dx = 0; dx < fp.w; dx++) {
+        const c = cellAt(x + dx, y + dy);
+        if (!c) return { ok: false, message: 'The hub needs a clear 2×2 area.' };
+        if (c.b) return { ok: false, message: 'The hub needs a clear 2×2 area.' };
+        if (c.ore) return { ok: false, message: 'The hub needs a clear 2×2 area.' };
+      }
+    return { ok: true };
   }
   if (cell.b) {
     // Clicking a building with its own tool: rotate it (assembler cycles recipe)
@@ -276,11 +315,11 @@ function placeTool(tool, x, y, dir = 1) {
   const check = canPlace(tool, x, y);
   if (!check.ok) return check;
   if (tool === 'rotate') {
-    cell.b.dir = (cell.b.dir + 1) % 4;
+    cell.b.dir = (cell.b.dir + 1) % 4; // multi-tile: one shared object, rotates whole building
     return { ok: true };
   }
   if (tool === 'delete') {
-    cell.b = null;
+    clearBuilding(cell.b); // clears the whole footprint, not just this cell
     return { ok: true };
   }
   if (check.reconfigure) {
@@ -288,6 +327,7 @@ function placeTool(tool, x, y, dir = 1) {
     else cell.b.dir = (cell.b.dir + 1) % 4;
     return { ok: true };
   }
+  if (tool === 'hub') { placeBuildingAt('hub', x, y, dir); return { ok: true }; }
   cell.b = newBuilding(tool, dir);
   return { ok: true };
 }

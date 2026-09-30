@@ -48,3 +48,8 @@
 
 ## 2026-09-27
 - Added a favicon (inline SVG monogram badge, matching the other apps) so browser bookmarks and tabs show the app logo instead of a generic globe.
+
+## 2026-09-29 — Prompts removed from app-switcher dropdown
+
+- Removed the Prompts entry from the in-app dropdown menu so it lists only the SE-job apps (plus the scribnet.io home link). The prompts page itself is untouched.
+

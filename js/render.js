@@ -71,11 +71,16 @@ function render() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.setTransform(zoom, 0, 0, zoom, camX, camY); // world space: px = tile * TILE
+  // Two passes: terrain first, buildings after. A multi-tile building
+  // (the hub) paints over several cells, so if tiles and buildings shared
+  // one pass, the ground of the later cells would cover most of the art.
   forEachCell((x, y, cell) => {
     drawTileBase(x, y, cell);
     if (cell.ore) drawOre(x, y, cell.ore);
+  });
+  forEachCell((x, y, cell) => {
     // Multi-tile buildings draw once, from their anchor cell
-    if (cell.b && !(cell.b.w > 1 && (cell.b.ax !== x || cell.b.ay !== y))) {
+    if (cell.b && !((cell.b.w > 1 || cell.b.h > 1) && (cell.b.ax !== x || cell.b.ay !== y))) {
       drawBuilding(x, y, cell.b);
     }
   });
@@ -653,7 +658,7 @@ function drawAssembler(tx, ty, b) {
   drawMachinePorts(px, py, b, true);
 }
 
-// The delivery hub: a 2x2 shipping crate. Drawn once over its whole
+// The delivery hub: a 2x1 shipping crate. Drawn once over its whole
 // footprint from the anchor cell. Cyan IN chevrons on all four outer
 // edges say "feed items in from any side"; the down-arrow badge says
 // "drop goods here".
@@ -663,7 +668,7 @@ function drawHub(tx, ty, b) {
   const cx = px + W / 2, cy = py + H / 2;
   // drop shadow
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
-  roundRect(px + 4, py + 5, W - 4, H - 4, 6);
+  roundRect(px + 4, py + 5, W - 4, H - 4, 5);
   ctx.fill();
   // wooden crate body with vertical gradient
   const g = ctx.createLinearGradient(px, py, px, py + H);
@@ -672,33 +677,32 @@ function drawHub(tx, ty, b) {
   ctx.fillStyle = g;
   ctx.strokeStyle = '#2e1f0e';
   ctx.lineWidth = 2.5;
-  roundRect(px + 2, py + 2, W - 4, H - 4, 6);
+  roundRect(px + 2, py + 2, W - 4, H - 4, 5);
   ctx.fill();
   ctx.stroke();
   // lid band across the top
   ctx.fillStyle = 'rgba(0,0,0,0.28)';
-  ctx.fillRect(px + 4, py + 4, W - 8, 9);
+  ctx.fillRect(px + 4, py + 4, W - 8, 6);
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
-  ctx.fillRect(px + 4, py + 13, W - 8, 1.5);
+  ctx.fillRect(px + 4, py + 10, W - 8, 1.5);
   // stencil label
   ctx.fillStyle = 'rgba(255,244,230,0.75)';
-  ctx.font = '700 7px system-ui, sans-serif';
+  ctx.font = '700 6px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('C A R G O', cx, py + 9);
-  // plank seams
+  ctx.fillText('C A R G O', cx, py + 7.5);
+  // plank seam down the middle, below the lid
   ctx.strokeStyle = 'rgba(0,0,0,0.35)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(px + 3, py + H / 2); ctx.lineTo(px + W - 3, py + H / 2);
-  ctx.moveTo(px + W / 2, py + 16); ctx.lineTo(px + W / 2, py + H - 3);
+  ctx.moveTo(cx, py + 12); ctx.lineTo(cx, py + H - 3);
   ctx.stroke();
   // corner brackets
   ctx.strokeStyle = '#d7a45e';
-  ctx.lineWidth = 2.5;
-  const c = 9;
-  const corners = [[px + 5, py + 5, 1, 1], [px + W - 5, py + 5, -1, 1],
-                   [px + 5, py + H - 5, 1, -1], [px + W - 5, py + H - 5, -1, -1]];
+  ctx.lineWidth = 2;
+  const c = 6;
+  const corners = [[px + 4, py + 4, 1, 1], [px + W - 4, py + 4, -1, 1],
+                   [px + 4, py + H - 4, 1, -1], [px + W - 4, py + H - 4, -1, -1]];
   for (const [qx, qy, sx, sy] of corners) {
     ctx.beginPath();
     ctx.moveTo(qx + sx * c, qy);
@@ -709,9 +713,9 @@ function drawHub(tx, ty, b) {
   // drop-in badge: dark disc with a white down arrow
   ctx.fillStyle = 'rgba(0,0,0,0.55)';
   ctx.beginPath();
-  ctx.arc(cx, cy + 3, 10, 0, Math.PI * 2);
+  ctx.arc(cx, cy + 2, 6, 0, Math.PI * 2);
   ctx.fill();
-  drawArrow(cx, cy + 1, 2, 6, '#ffffff'); // pointing down
+  drawArrow(cx, cy, 2, 4, '#ffffff'); // pointing down
   // IN chevrons along every outer edge, one per tile
   for (let i = 0; i < b.w; i++) {
     const ex = px + i * TILE;
@@ -757,7 +761,7 @@ function drawProgressBar(px, py, b) {
 }
 
 function drawHoverHighlight(x, y) {
-  // The hub tool previews a 2x2 footprint; highlight the whole area.
+  // The hub tool previews a 2x1 footprint; highlight the whole area.
   const fp = footprint(selectedTool);
   ctx.strokeStyle = 'rgba(255,255,255,0.35)';
   ctx.lineWidth = 2;
@@ -789,9 +793,10 @@ function drawGhost(x, y) {
     if (check.reconfigure && cell.b) ghost.dir = cell.b.dir;
     drawBuilding(x, y, ghost);
   } else if (selectedTool === 'hub') {
-    // red 2x2 preview so the footprint is obvious even when it fails
+    // red 2x1 preview so the footprint is obvious even when it fails
+    const fp = footprint('hub');
     ctx.fillStyle = 'rgba(255,60,60,0.35)';
-    ctx.fillRect(px, py, 2 * TILE, 2 * TILE);
+    ctx.fillRect(px, py, fp.w * TILE, fp.h * TILE);
   } else {
     ctx.fillStyle = 'rgba(255,60,60,0.35)';
     ctx.fillRect(px, py, TILE, TILE);

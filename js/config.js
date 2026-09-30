@@ -71,7 +71,7 @@ const TOOLS = [
   { id: 'miner',     name: 'Miner',        hotkey: '2', glyph: '⛏️', desc: 'Digs ore out of the ground. Must be placed on an ore patch. Ore comes OUT of the green port.' },
   { id: 'furnace',   name: 'Furnace',      hotkey: '3', glyph: '🔥', desc: 'Smelts ore into plates: iron ore → iron plate, copper ore → copper plate. Ore goes IN the blue ports, plates come OUT of the green port.' },
   { id: 'assembler', name: 'Assembler',    hotkey: '4', glyph: '⚙️', desc: 'Crafts parts. Ingredients go IN the blue ports, parts come OUT of the green port. Click a placed assembler to switch its recipe.' },
-  { id: 'hub',       name: 'Delivery hub', hotkey: '5', glyph: '📦', desc: 'A 2×2 shipping crate. Feed items in from ANY side to fill the current shipment order.' },
+  { id: 'hub',       name: 'Delivery hub', hotkey: '5', glyph: '📦', desc: 'A 2×1 shipping crate. Feed items in from ANY side to fill the current shipment order.' },
   { id: 'rotate',    name: 'Rotate',       hotkey: '6', glyph: '🔄', desc: 'Turns a building clockwise.' },
   { id: 'delete',    name: 'Delete',       hotkey: '7', glyph: '❌', desc: 'Removes a building. Ore patches stay.' },
   { id: 'selector',  name: 'Selector',     hotkey: '8', glyph: '👆', desc: 'Inspect a building. Click an assembler to pick its recipe directly.' },

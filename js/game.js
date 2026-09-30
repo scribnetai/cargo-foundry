@@ -26,10 +26,10 @@ const Game = {
 //   assembler: { recipe, inbuf: {}, crafting, progress, out: [] }
 //   hub:       {}                               no state; just eats items
 //
-// Buildings can span multiple tiles (the delivery hub is 2x2). The one
+// Buildings can span multiple tiles (the delivery hub is 2x1). The one
 // building OBJECT is referenced by every cell it covers; ax/ay is the
 // anchor (top-left) tile of the footprint.
-const FOOTPRINTS = { hub: { w: 2, h: 2 } };
+const FOOTPRINTS = { hub: { w: 2, h: 1 } };
 function footprint(type) { return FOOTPRINTS[type] || { w: 1, h: 1 }; }
 
 function newBuilding(type, dir = 1) {
@@ -59,7 +59,7 @@ function newWorld() {
   }
 
   // One delivery hub pre-placed near the right edge, vertically centered.
-  // It's a 2x2 shipping crate — stamp it as one building over 4 cells.
+  // It's a 2x1 shipping crate — stamp it as one building over 2 cells.
   placeBuildingAt('hub', COLS - 6, Math.floor(ROWS / 2) - 1, 1);
 
   Game.tickCount = 0;
@@ -292,14 +292,14 @@ function canPlace(tool, x, y) {
     return { ok: false, message: 'Nothing to delete here.' };
   }
   if (tool === 'hub') {
-    // 2x2 footprint: every covered cell must be free and ore-free
+    // 2x1 footprint: every covered cell must be free and ore-free
     const fp = footprint('hub');
     for (let dy = 0; dy < fp.h; dy++)
       for (let dx = 0; dx < fp.w; dx++) {
         const c = cellAt(x + dx, y + dy);
-        if (!c) return { ok: false, message: 'The hub needs a clear 2×2 area.' };
-        if (c.b) return { ok: false, message: 'The hub needs a clear 2×2 area.' };
-        if (c.ore) return { ok: false, message: 'The hub needs a clear 2×2 area.' };
+        if (!c) return { ok: false, message: 'The hub needs a clear 2×1 area.' };
+        if (c.b) return { ok: false, message: 'The hub needs a clear 2×1 area.' };
+        if (c.ore) return { ok: false, message: 'The hub needs a clear 2×1 area.' };
       }
     return { ok: true };
   }

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-09-29 — Delivery hub is 2×1, multi-tile render fix
+- **Delivery hub is now 2×1** (was 2×2): a single shipping crate — wood-grain gradient, lid band, "CARGO" stencil, corner brackets, drop-in badge, IN chevrons on all four outer edges. Placement, ghost, hover highlight, and toasts all follow the new footprint automatically.
+- **Fixed: only part of the hub rendered.** The render loop painted tiles and buildings in one pass, so the ground tiles of the hub's later cells were drawn *over* most of the hub art — only the anchor cell's quarter showed. The loop is now two passes (all terrain, then all buildings), so multi-tile art always paints on top. Also hardened the anchor-cell skip to cover any wide-or-tall building. Touched: js/config.js, js/game.js, js/render.js, index.html (cache-busters bumped).
 ## 2026-09-29 — Selector tool + assembler recipe picker
 - New **Selector** tool (👆, hotkey 8): click any building to inspect it — hovering outlines it in green, clicking shows what it's doing (miner ore type, furnace smelt state, hub hint). Clicking an **assembler** opens a floating recipe picker next to the cursor with all three recipes, ingredient lists, and craft times; picking one switches the recipe immediately (buffers clear, same as the old click-cycle). The old click-with-assembler-tool cycle still works. Touched: js/config.js, js/game.js (new `setRecipe()`, `cycleRecipe` now routes through it), js/render.js (selector hover outline), js/ui.js, index.html, styles.css (cache-busters bumped).
 ## 2026-09-29 — Furnace & assembler polish pass

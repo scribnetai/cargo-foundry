@@ -310,8 +310,10 @@ function canPlace(tool, x, y) {
   }
   if (tool === 'miner') {
     if (!cell.ore) return { ok: false, message: 'Miners must be placed on an ore patch.' };
-  } else if (cell.ore) {
-    return { ok: false, message: 'Only miners go on ore — belts can run over it though.' };
+  } else if (cell.ore && tool !== 'belt') {
+    // Belts are allowed on ore so a miner buried inside a patch can still
+    // feed a line; every other building needs clear ground.
+    return { ok: false, message: 'Only miners and belts go on ore.' };
   }
   return { ok: true };
 }

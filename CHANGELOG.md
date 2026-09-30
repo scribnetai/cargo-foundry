@@ -1,5 +1,7 @@
 # Changelog
 
+## 2026-09-29 — Belts can be placed on ore (real gameplay bug)
+- The QA pass found that belts could NOT be placed on ore tiles even though the game's own rejection toast said "belts can run over it though" — and since miners must sit on ore, any miner not on the exact edge of a patch was permanently dead (its output tile was ore, no belt could go there, `emitFrom` needs a building). Verified in code, fixed: belts are now placeable on ore (ore is preserved underneath), everything else still needs clear ground. Rejection message is now the honest "Only miners and belts go on ore." Headless proof: a miner buried in a patch emits iron-ore onto an adjacent belt-on-ore. Touched: js/game.js, index.html (cache-buster bumped), new test-belt-ore.js (9/9 pass).
 ## 2026-09-29 — Hub loses its blue arrows too
 - The delivery hub's cyan IN chevrons are gone as well — the white drop-in badge is now its only marker. All blue port indicators are fully retired; the single green OUT chevron on machines is the only directional marker left in the game. Touched: js/render.js, index.html (cache-buster bumped).
 ## 2026-09-29 — Dropped the blue input arrows

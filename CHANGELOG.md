@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-29 — Furnace & assembler polish pass
+- **Furnace is a proper kiln now:** arched firebox door with a riveted frame, animated flame tongues over a flickering heat glow, smoke puffs drifting from the chimney while smelting, and dark coals when idle. A status light (green = burning, amber = idle) sits top-left; the waiting plate moved to a clear spot top-right.
+- **Assembler is a precision machine:** the work pad has corner screws, a dashed servo ring that spins while crafting, and the progress arc now fills that same ring so progress reads as the ring completing. Status light: green pulse = crafting, amber = waiting for inputs.
+- Both use the same status-light language; miner keeps its drill (already the favorite). Touched: js/render.js (cache-buster bumped to v=6).
 ## 2026-09-29 — Visual art pass: defined belts, machines, and item icons
 - **Belts are real conveyors now:** dark track bed with a center stripe, raised side rails with highlight edges, scrolling flow chevrons that show direction and motion, and metal end rollers where a belt line terminates (segments in a line merge visually — no roller between them).
 - **Items are shape-coded, not just colored squares:** rocky nuggets (ore), flat ingot bars (plates), copper coil rings (wire), toothed gears with hub holes (gears), and pin-out chips (circuits) — each with a dark outline and highlight so they read as physical objects on the belt.

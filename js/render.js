@@ -290,6 +290,40 @@ function chassis(px, py, w, h, base, panel) {
     }
 }
 
+// Status light: green pulse while working, amber when idle/waiting.
+function statusLight(x, y, mode) {
+  if (mode === 'work') {
+    const pulse = 0.6 + 0.4 * Math.sin(animT * 6);
+    ctx.fillStyle = `rgba(74,222,128,${0.28 * pulse})`;
+    ctx.beginPath(); ctx.arc(x, y, 4.4, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = mode === 'work' ? '#4ade80' : '#8a6a2a';
+  ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath(); ctx.arc(x - 0.6, y - 0.6, 0.7, 0, Math.PI * 2); ctx.fill();
+}
+
+// Flame tongues rising from baseY, animated by t
+function drawFlames(cx, baseY, w, t) {
+  for (let i = -1; i <= 1; i++) {
+    const h = (4.5 + Math.sin(t * 11 + i * 2.1) * 1.6) * (i === 0 ? 1.3 : 0.9);
+    const x = cx + i * w * 0.22;
+    const ww = w * 0.19;
+    ctx.fillStyle = 'rgba(255,110,25,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(x - ww, baseY);
+    ctx.quadraticCurveTo(x - ww * 0.6, baseY - h * 0.6, x, baseY - h);
+    ctx.quadraticCurveTo(x + ww * 0.6, baseY - h * 0.6, x + ww, baseY);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,210,120,0.95)';
+    const h2 = h * 0.55, ww2 = ww * 0.55;
+    ctx.beginPath();
+    ctx.moveTo(x - ww2, baseY);
+    ctx.quadraticCurveTo(x, baseY - h2 * 1.2, x + ww2, baseY);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
 // A port chevron on the edge of a tile in compass direction `dir`.
 // Output (inward=false): bright green, jutting OUT of the edge so it
 // visually "emits" into the neighbor tile.
@@ -497,36 +531,8 @@ function drawFurnace(tx, ty, b) {
   const px = tx * TILE, py = ty * TILE;
   const cx = px + TILE / 2, cy = py + TILE / 2;
   chassis(px, py, 1, 1, '#2a160e', '#4a2a1a');
-  // firebox: recessed frame
-  ctx.fillStyle = '#0d0705';
-  roundRect(px + 6, py + 9, TILE - 12, TILE - 13, 2);
-  ctx.fill();
-  if (b.smelting) {
-    // animated heat glow
-    const flick = 0.75 + 0.25 * Math.sin(animT * 9) * Math.sin(animT * 5.3);
-    const g = ctx.createRadialGradient(cx, cy + 2, 1, cx, cy + 2, 8);
-    g.addColorStop(0, `rgba(255,190,90,${0.95 * flick})`);
-    g.addColorStop(0.6, `rgba(255,110,30,${0.75 * flick})`);
-    g.addColorStop(1, 'rgba(180,50,10,0)');
-    ctx.fillStyle = g;
-    roundRect(px + 6, py + 9, TILE - 12, TILE - 13, 2);
-    ctx.fill();
-    // rising embers
-    for (let i = 0; i < 2; i++) {
-      const et = (animT * 0.9 + i * 0.5) % 1;
-      const ex = cx + Math.sin(animT * 3 + i * 2.4) * 3;
-      const ey = py + 8 - et * 7;
-      ctx.globalAlpha = (1 - et) * 0.9;
-      ctx.fillStyle = '#ffcf7a';
-      ctx.fillRect(ex - 1, ey - 1, 2, 2);
-      ctx.globalAlpha = 1;
-    }
-  } else {
-    // cold furnace: faint ash bed
-    ctx.fillStyle = 'rgba(120,90,70,0.25)';
-    roundRect(px + 8, py + 11, TILE - 16, TILE - 17, 2);
-    ctx.fill();
-  }
+  // status light: burning vs idle
+  statusLight(px + 8.5, py + 8, b.smelting ? 'work' : 'idle');
   // chimney with cap
   ctx.fillStyle = '#1c100a';
   ctx.fillRect(cx - 3.5, py + 1.5, 7, 6);
@@ -534,8 +540,72 @@ function drawFurnace(tx, ty, b) {
   ctx.fillRect(cx - 3.5, py + 1.5, 7, 4);
   ctx.fillStyle = '#7a4a2e';
   ctx.fillRect(cx - 4.5, py + 0.5, 9, 2);
-  // waiting output item, bottom-right of the panel
-  if (b.out.length) drawItemShape(b.out[0], px + TILE - 7.5, py + TILE - 8.5, 3);
+  ctx.fillStyle = '#0a0605';
+  ctx.fillRect(cx - 2.5, py + 0.5, 5, 1.5);
+  // smoke puffs while smelting
+  if (b.smelting) {
+    for (let i = 0; i < 3; i++) {
+      const pt = (animT * 0.45 + i / 3) % 1;
+      const sx = cx + Math.sin(animT * 2 + i * 2.1) * (1 + pt * 3);
+      const sy = py - 1 - pt * 10;
+      ctx.fillStyle = `rgba(160,160,170,${0.32 * (1 - pt)})`;
+      ctx.beginPath(); ctx.arc(sx, sy, 1.2 + pt * 2.6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  // arched kiln door: riveted frame + dark opening
+  const fx = px + 6, fy = py + 9, fw = TILE - 12, fh = 9;
+  ctx.fillStyle = '#14100c';
+  roundRect(fx - 1.5, fy - 1.5, fw + 3, fh + 3, 3);
+  ctx.fill();
+  ctx.fillStyle = '#0a0605';
+  for (const [rx, ry] of [[fx + 1, fy + 1], [fx + fw - 1, fy + 1], [fx + 1, fy + fh - 1], [fx + fw - 1, fy + fh - 1]]) {
+    ctx.beginPath(); ctx.arc(rx, ry, 1, 0, Math.PI * 2); ctx.fill();
+  }
+  // everything inside the arch is clipped to the opening
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(fx, fy + fh);
+  ctx.lineTo(fx, fy + 3.5);
+  ctx.quadraticCurveTo(fx, fy, fx + 3.5, fy);
+  ctx.lineTo(fx + fw - 3.5, fy);
+  ctx.quadraticCurveTo(fx + fw, fy, fx + fw, fy + 3.5);
+  ctx.lineTo(fx + fw, fy + fh);
+  ctx.closePath();
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+  ctx.clip();
+  if (b.smelting) {
+    // heat glow wash
+    const flick = 0.75 + 0.25 * Math.sin(animT * 9) * Math.sin(animT * 5.3);
+    const g = ctx.createRadialGradient(cx, fy + fh - 2, 1, cx, fy + fh - 2, 8);
+    g.addColorStop(0, `rgba(255,190,90,${0.95 * flick})`);
+    g.addColorStop(0.6, `rgba(255,110,30,${0.7 * flick})`);
+    g.addColorStop(1, 'rgba(180,50,10,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(fx, fy, fw, fh);
+    // flame tongues
+    drawFlames(cx, fy + fh - 1, fw - 3, animT);
+    // rising embers
+    for (let i = 0; i < 2; i++) {
+      const et = (animT * 0.9 + i * 0.5) % 1;
+      const ex = cx + Math.sin(animT * 3 + i * 2.4) * 3;
+      const ey = fy + fh - 2 - et * 7;
+      ctx.globalAlpha = (1 - et) * 0.9;
+      ctx.fillStyle = '#ffcf7a';
+      ctx.fillRect(ex - 1, ey - 1, 2, 2);
+      ctx.globalAlpha = 1;
+    }
+  } else {
+    // cold: dark coals in the ash
+    ctx.fillStyle = 'rgba(140,60,30,0.5)';
+    for (let i = 0; i < 3; i++) {
+      const cox = fx + 3 + hash2(tx * 7 + i, ty * 3) * (fw - 6);
+      ctx.beginPath(); ctx.arc(cox, fy + fh - 2.5, 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.restore();
+  // waiting output item, top-right of the panel
+  if (b.out.length) drawItemShape(b.out[0], px + TILE - 7, py + 5.5, 3);
   // ore in (blue ports) / plates out (green port)
   drawMachinePorts(px, py, b, true);
 }
@@ -546,21 +616,37 @@ function drawAssembler(tx, ty, b) {
   chassis(px, py, 1, 1, '#12202b', '#1e3a4f');
   const rec = ASSEMBLER_RECIPES[b.recipe];
   const outItem = Object.keys(rec.out)[0];
-  // work pad: recessed circle
+  // status light: crafting vs waiting for inputs
+  statusLight(px + 8.5, py + 8, b.crafting ? 'work' : 'idle');
+  // work pad: recessed circle with screws
   ctx.fillStyle = '#0b141c';
   ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(140,200,255,0.25)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#5a6b7d';
+  for (let i = 0; i < 4; i++) {
+    const a = Math.PI / 4 + (i / 4) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * 7.2, cy + Math.sin(a) * 7.2, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // servo ring: dashed track that spins while crafting; the progress
+  // arc fills the same track, so progress reads as the ring completing
+  ctx.strokeStyle = b.crafting ? 'rgba(140,200,255,0.7)' : 'rgba(140,200,255,0.22)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 2.5]);
+  ctx.lineDashOffset = b.crafting ? -animT * 18 : 0;
+  ctx.beginPath(); ctx.arc(cx, cy, 10.8, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
   // product icon — the recipe, readable at a glance
   drawItemShape(outItem, cx, cy, 5);
-  // progress ring while crafting
   if (b.crafting) {
     const frac = b.progress / rec.time;
-    ctx.strokeStyle = 'rgba(124,196,255,0.9)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(124,196,255,0.95)';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.arc(cx, cy, 10.5, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+    ctx.arc(cx, cy, 10.8, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
     ctx.stroke();
   }
   // ingredients in (blue ports) / parts out (green port)

@@ -768,6 +768,18 @@ function drawHoverHighlight(x, y) {
 function drawGhost(x, y) {
   const check = canPlace(selectedTool, x, y);
   if (selectedTool === 'rotate' || selectedTool === 'delete') return; // no ghost for these
+  if (selectedTool === 'selector') {
+    // No placement ghost — outline the building under the cursor instead.
+    const cell = cellAt(x, y);
+    if (cell && cell.b) {
+      const b = cell.b;
+      ctx.strokeStyle = 'rgba(74,222,128,0.9)';
+      ctx.lineWidth = 2;
+      roundRect(b.ax * TILE + 1.5, b.ay * TILE + 1.5, b.w * TILE - 3, b.h * TILE - 3, 4);
+      ctx.stroke();
+    }
+    return;
+  }
   ctx.globalAlpha = 0.45;
   const px = x * TILE, py = y * TILE;
   if (check.ok) {

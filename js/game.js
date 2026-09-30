@@ -277,6 +277,12 @@ function clearBuilding(b) {
 function canPlace(tool, x, y) {
   const cell = cellAt(x, y);
   if (!cell) return { ok: false };
+  if (tool === 'selector') {
+    // Inspect, don't place: a building selects it, empty ground just
+    // dismisses the panel (no toast — that's the common case).
+    if (cell.b) return { ok: true };
+    return { ok: false };
+  }
   if (tool === 'rotate') {
     if (cell.b && cell.b.dir !== undefined) return { ok: true };
     return { ok: false, message: 'Nothing to rotate here.' };
@@ -322,6 +328,9 @@ function placeTool(tool, x, y, dir = 1) {
     clearBuilding(cell.b); // clears the whole footprint, not just this cell
     return { ok: true };
   }
+  if (tool === 'selector') {
+    return { ok: true, building: cell.b }; // UI layer decides what to do with it
+  }
   if (check.reconfigure) {
     if (tool === 'assembler') cycleRecipe(cell.b);
     else cell.b.dir = (cell.b.dir + 1) % 4;
@@ -332,12 +341,18 @@ function placeTool(tool, x, y, dir = 1) {
   return { ok: true };
 }
 
-// Switch an assembler to the next recipe; buffered ingredients are
-// dropped so a half-fed machine can't get stuck on the wrong inputs.
-function cycleRecipe(b) {
-  const i = ASSEMBLER_RECIPE_ORDER.indexOf(b.recipe);
-  b.recipe = ASSEMBLER_RECIPE_ORDER[(i + 1) % ASSEMBLER_RECIPE_ORDER.length];
+// Set an assembler's recipe directly; buffered ingredients are dropped
+// so a half-fed machine can't get stuck on the wrong inputs.
+function setRecipe(b, key) {
+  if (!ASSEMBLER_RECIPES[key]) return;
+  b.recipe = key;
   b.inbuf = {};
   b.crafting = false;
   b.progress = 0;
+}
+
+// Switch an assembler to the next recipe (the click-cycle path).
+function cycleRecipe(b) {
+  const i = ASSEMBLER_RECIPE_ORDER.indexOf(b.recipe);
+  setRecipe(b, ASSEMBLER_RECIPE_ORDER[(i + 1) % ASSEMBLER_RECIPE_ORDER.length]);
 }

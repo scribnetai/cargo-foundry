@@ -74,4 +74,5 @@ const TOOLS = [
   { id: 'hub',       name: 'Delivery hub', hotkey: '5', glyph: '📦', desc: 'A 2×2 shipping crate. Feed items in from ANY side to fill the current shipment order.' },
   { id: 'rotate',    name: 'Rotate',       hotkey: '6', glyph: '🔄', desc: 'Turns a building clockwise.' },
   { id: 'delete',    name: 'Delete',       hotkey: '7', glyph: '❌', desc: 'Removes a building. Ore patches stay.' },
+  { id: 'selector',  name: 'Selector',     hotkey: '8', glyph: '👆', desc: 'Inspect a building. Click an assembler to pick its recipe directly.' },
 ];

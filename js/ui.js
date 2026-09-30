@@ -37,6 +37,7 @@ function buildToolbar() {
 
 function selectTool(id) {
   selectedTool = id; // render.js global
+  hideSelectorPanel();
   document.querySelectorAll('#tool-buttons .tool').forEach(el => {
     el.classList.toggle('active', el.dataset.tool === id);
   });
@@ -85,14 +86,15 @@ function bindCanvas() {
     const sy = (e.clientY - r.top) * (canvas.height / r.height);
     const t = screenToTile(sx, sy); // render.js global
     hoverCell = inBounds(t.x, t.y) ? { x: t.x, y: t.y } : null;
-    canvas.style.cursor = selectedTool === 'delete' ? 'not-allowed' : 'crosshair';
+    canvas.style.cursor = selectedTool === 'delete' ? 'not-allowed'
+      : selectedTool === 'selector' ? 'pointer' : 'crosshair';
     if (beltDrag) continueBeltDrag();
   });
   canvas.addEventListener('mouseleave', () => { hoverCell = null; beltDrag = null; });
   // Left button places on mousedown (not click) so belt drags start instantly.
   canvas.addEventListener('mousedown', (e) => {
     if (e.button !== 0 || !hoverCell) return;
-    applyToolAt(selectedTool, hoverCell.x, hoverCell.y);
+    applyToolAt(selectedTool, hoverCell.x, hoverCell.y, false, e);
     if (selectedTool === 'belt') beltDrag = { x: hoverCell.x, y: hoverCell.y };
   });
   window.addEventListener('mouseup', () => { beltDrag = null; });
@@ -113,11 +115,82 @@ function bindCanvas() {
 }
 
 // Apply a tool at a cell; toast on failure (except during drags, which stay quiet)
-function applyToolAt(tool, x, y, quiet) {
+function applyToolAt(tool, x, y, quiet, evt) {
   const res = placeTool(tool, x, y, placeDir); // placeDir: render.js global
+  if (tool === 'selector') {
+    if (res.ok && res.building) inspectBuilding(res.building, x, y, evt);
+    else hideSelectorPanel();
+    return res;
+  }
   if (!res.ok && res.message && !quiet) toast(res.message);
   renderOrders(); // assembler recipe clicks change the panel hint
   return res;
+}
+
+// ---- selector tool ----------------------------------------------------
+// The building currently shown in the recipe picker (null when closed).
+let inspectedAssembler = null;
+
+function inspectBuilding(b, x, y, evt) {
+  hideSelectorPanel();
+  if (b.type === 'assembler') {
+    inspectedAssembler = b;
+    showRecipePanel(b, evt);
+    return;
+  }
+  inspectedAssembler = null;
+  if (b.type === 'miner') {
+    const cell = cellAt(x, y);
+    toast(`⛏️ Miner — digging ${cell && cell.ore ? cell.ore : '…'} ore`);
+  } else if (b.type === 'furnace') {
+    toast(b.smelting
+      ? `🔥 Smelting ${ITEMS[b.smelting].name} → ${ITEMS[FURNACE_RECIPES[b.smelting].out].name}`
+      : '🔥 Furnace — waiting for ore');
+  } else if (b.type === 'belt') {
+    toast('➡️ Belt — carrying items along');
+  } else if (b.type === 'hub') {
+    toast('📦 Delivery hub — feed items in from any side');
+  }
+}
+
+function showRecipePanel(b, evt) {
+  const panel = document.getElementById('selector-panel');
+  let html = `<div class="sp-title">⚙️ Assembler recipe</div>`;
+  for (const key of ASSEMBLER_RECIPE_ORDER) {
+    const rec = ASSEMBLER_RECIPES[key];
+    const ins = Object.entries(rec.in).map(([it, n]) => `${n}× ${itemChip(it)}`).join(' + ');
+    const outs = Object.entries(rec.out).map(([it, n]) => `${n}× ${itemChip(it)}`).join(' + ');
+    const cur = key === b.recipe ? ' current' : '';
+    html += `<button class="sp-recipe${cur}" data-recipe="${key}">
+               <span class="sp-name">${rec.name}${key === b.recipe ? ' ✓' : ''}</span>
+               <span class="sp-io">${ins} → ${outs}</span>
+               <span class="sp-time">${(rec.time / TICKS_PER_SEC).toFixed(1)}s per craft</span>
+             </button>`;
+  }
+  panel.innerHTML = html;
+  panel.hidden = false;
+  // Park it by the click, clamped into the viewport.
+  const cx = evt ? evt.clientX : window.innerWidth / 2;
+  const cy = evt ? evt.clientY : window.innerHeight / 2;
+  const w = panel.offsetWidth, h = panel.offsetHeight;
+  panel.style.left = Math.min(Math.max(8, cx + 14), window.innerWidth - w - 8) + 'px';
+  panel.style.top = Math.min(Math.max(8, cy + 14), window.innerHeight - h - 8) + 'px';
+  panel.querySelectorAll('.sp-recipe').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = inspectedAssembler;
+      if (!target || target.type !== 'assembler') { hideSelectorPanel(); return; }
+      setRecipe(target, btn.dataset.recipe);
+      toast(`⚙️ Assembler now crafting ${ASSEMBLER_RECIPES[target.recipe].name}`);
+      hideSelectorPanel();
+      renderOrders();
+    });
+  });
+}
+
+function hideSelectorPanel() {
+  const panel = document.getElementById('selector-panel');
+  if (panel) panel.hidden = true;
+  inspectedAssembler = null;
 }
 
 // While the left button is held with the belt tool, lay belts along the
@@ -170,6 +243,7 @@ function bindButtons() {
       newWorld();
       renderOrders();
       hideModal('win-modal');
+      hideSelectorPanel();
       toast('Fresh map generated.');
     }
   });
@@ -180,6 +254,7 @@ function bindButtons() {
     newWorld();
     renderOrders();
     hideModal('win-modal');
+    hideSelectorPanel();
   });
   document.getElementById('help-modal').addEventListener('click', (e) => {
     if (e.target.id === 'help-modal') hideModal('help-modal');
@@ -197,7 +272,7 @@ function bindButtons() {
 
 function bindKeys() {
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { hideModal('help-modal'); hideModal('win-modal'); return; }
+    if (e.key === 'Escape') { hideModal('help-modal'); hideModal('win-modal'); hideSelectorPanel(); return; }
     // Don't steal keystrokes while the player is typing (feedback form etc.)
     const tag = (document.activeElement && document.activeElement.tagName) || '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;

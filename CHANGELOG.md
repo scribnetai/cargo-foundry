@@ -1,5 +1,7 @@
 # Changelog
 
+## 2026-09-29 — Selector tool + assembler recipe picker
+- New **Selector** tool (👆, hotkey 8): click any building to inspect it — hovering outlines it in green, clicking shows what it's doing (miner ore type, furnace smelt state, hub hint). Clicking an **assembler** opens a floating recipe picker next to the cursor with all three recipes, ingredient lists, and craft times; picking one switches the recipe immediately (buffers clear, same as the old click-cycle). The old click-with-assembler-tool cycle still works. Touched: js/config.js, js/game.js (new `setRecipe()`, `cycleRecipe` now routes through it), js/render.js (selector hover outline), js/ui.js, index.html, styles.css (cache-busters bumped).
 ## 2026-09-29 — Furnace & assembler polish pass
 - **Furnace is a proper kiln now:** arched firebox door with a riveted frame, animated flame tongues over a flickering heat glow, smoke puffs drifting from the chimney while smelting, and dark coals when idle. A status light (green = burning, amber = idle) sits top-left; the waiting plate moved to a clear spot top-right.
 - **Assembler is a precision machine:** the work pad has corner screws, a dashed servo ring that spins while crafting, and the progress arc now fills that same ring so progress reads as the ring completing. Status light: green pulse = crafting, amber = waiting for inputs.

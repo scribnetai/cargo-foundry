@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cargo Foundry</title>
-<link rel="stylesheet" href="styles.css?v=1">
+<link rel="stylesheet" href="styles.css?v=2">
 <!-- PWA: installable home-screen app -->
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0b0e14">
@@ -68,7 +68,7 @@
     <h2>Build</h2>
     <div id="tool-buttons"></div>
     <p class="tool-desc" id="tool-desc"></p>
-    <p class="hint">Keys 1–7 pick tools.<br><b>R</b> rotates the item you're holding.<br><b>Scroll</b> zooms the map in and out.<br>Click-drag with the belt tool to lay belts in a line.<br>Right-click rotates anything already placed.<br>Green port = output, blue ports = input.</p>
+    <p class="hint">Keys 1–8 pick tools.<br><b>R</b> rotates the item you're holding.<br><b>Scroll</b> zooms the map in and out.<br>Click-drag with the belt tool to lay belts in a line.<br>Right-click rotates anything already placed.<br>Green port = output, blue ports = input.</p>
   </aside>
 
   <section class="stage">
@@ -88,13 +88,16 @@
   </aside>
 </main>
 
+<!-- Selector tool: floating recipe picker, positioned by ui.js near the click -->
+<div id="selector-panel" hidden></div>
+
 <div class="modal-backdrop" id="help-modal" hidden>
   <div class="modal">
     <h2>How to play</h2>
     <ol>
       <li><b>Miners</b> (⛏️) go on the orange/gray <b>ore patches</b> and dig ore out of the ground. Ore leaves through the <b>green output port</b>.</li>
       <li><b>Belts</b> (➡️) carry items. Press <b>R</b> to rotate the ghost before placing, or <b>click-drag</b> to lay a whole line of belts that face the way you drag. <b>Scroll</b> zooms the map in and out. Right-click rotates anything already placed.</li>
-      <li><b>Furnaces</b> (🔥) smelt ore into plates. <b>Assemblers</b> (⚙️) craft wire, gears, and circuits — click one with the assembler tool to switch recipes. Ingredients enter through the <b>blue ports</b>; finished goods leave through the <b>green port</b>.</li>
+      <li><b>Furnaces</b> (🔥) smelt ore into plates. <b>Assemblers</b> (⚙️) craft wire, gears, and circuits — click one with the assembler tool to cycle recipes, or pick the <b>Selector</b> (👆) and click it to choose a recipe directly. Ingredients enter through the <b>blue ports</b>; finished goods leave through the <b>green port</b>.</li>
       <li>Feed finished goods from <b>any side</b> into the green <b>delivery hub</b> (📦) — it's a <b>2×2 shipping crate</b> with input arrows on all four sides — to fill the <b>shipment orders</b> on the right. Fill all 6 to win.</li>
     </ol>
     <p class="modal-tip">Tip: a miner facing a belt facing a furnace facing a belt facing a hub is your first production line. Chain from there.</p>
@@ -113,11 +116,11 @@
   </div>
 </div>
 
-<script src="js/config.js?v=4"></script>
-<script src="js/game.js?v=4"></script>
+<script src="js/config.js?v=5"></script>
+<script src="js/game.js?v=5"></script>
 <script src="js/render.js?v=6"></script>
 <script src="js/music.js?v=4"></script>
-<script src="js/ui.js?v=5"></script>
+<script src="js/ui.js?v=6"></script>
 <script src="js/main.js?v=4"></script>
 <script src="js/app-switcher.js?v=2"></script>
 <!-- ScribNet feedback widget: floating button + dialog, sends via user's email client (mailto). Self-contained: no external deps, no reliance on page CSS. -->

@@ -374,14 +374,10 @@ function portChevron(px, py, dir, inward, color) {
 
 // Machine port layout: OUT chevron on the facing edge, IN chevrons on
 // the remaining edges (miners have no inputs — output only).
-function drawMachinePorts(px, py, b, hasInput) {
+// Flow direction, full stop: one green OUT chevron on the output edge.
+// Ingredients feed in from any other side, so input markers are just noise.
+function drawMachinePorts(px, py, b) {
   portChevron(px, py, b.dir, false, PORT_OUT);
-  if (hasInput) {
-    for (let d = 0; d < 4; d++) {
-      if (d === b.dir) continue;
-      portChevron(px, py, d, true, PORT_IN);
-    }
-  }
 }
 
 // ---- buildings -------------------------------------------------
@@ -529,7 +525,7 @@ function drawMiner(tx, ty, b) {
   ctx.fillStyle = '#e8b23e';
   ctx.beginPath(); ctx.arc(cx, cy, 1.2, 0, Math.PI * 2); ctx.fill();
   // ore exits here: bright green output port
-  drawMachinePorts(px, py, b, false);
+  drawMachinePorts(px, py, b);
 }
 
 function drawFurnace(tx, ty, b) {
@@ -612,7 +608,7 @@ function drawFurnace(tx, ty, b) {
   // waiting output item, top-right of the panel
   if (b.out.length) drawItemShape(b.out[0], px + TILE - 7, py + 5.5, 3);
   // ore in (blue ports) / plates out (green port)
-  drawMachinePorts(px, py, b, true);
+  drawMachinePorts(px, py, b);
 }
 
 function drawAssembler(tx, ty, b) {
@@ -655,7 +651,7 @@ function drawAssembler(tx, ty, b) {
     ctx.stroke();
   }
   // ingredients in (blue ports) / parts out (green port)
-  drawMachinePorts(px, py, b, true);
+  drawMachinePorts(px, py, b);
 }
 
 // The delivery hub: a 2x1 shipping crate. Drawn once over its whole

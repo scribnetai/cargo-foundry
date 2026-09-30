@@ -1,5 +1,7 @@
 # Changelog
 
+## 2026-09-29 — Dropped the blue input arrows
+- Machines no longer show blue IN chevrons — just the single green OUT chevron. Ingredients feed in from any side except the output side, so the three blue markers per machine were pure noise. The delivery hub keeps its cyan input ring (it's input-only — that's its whole identity). Help text and toolbar descriptions updated to match. Touched: js/render.js, js/config.js, index.html (cache-busters bumped).
 ## 2026-09-29 — Delivery hub is 2×1, multi-tile render fix
 - **Delivery hub is now 2×1** (was 2×2): a single shipping crate — wood-grain gradient, lid band, "CARGO" stencil, corner brackets, drop-in badge, IN chevrons on all four outer edges. Placement, ghost, hover highlight, and toasts all follow the new footprint automatically.
 - **Fixed: only part of the hub rendered.** The render loop painted tiles and buildings in one pass, so the ground tiles of the hub's later cells were drawn *over* most of the hub art — only the anchor cell's quarter showed. The loop is now two passes (all terrain, then all buildings), so multi-tile art always paints on top. Also hardened the anchor-cell skip to cover any wide-or-tall building. Touched: js/config.js, js/game.js, js/render.js, index.html (cache-busters bumped).

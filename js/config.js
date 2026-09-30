@@ -69,8 +69,8 @@ const ORDERS = [
 const TOOLS = [
   { id: 'belt',      name: 'Belt',         hotkey: '1', glyph: '➡️', desc: 'Carries items in the direction it faces. Scroll to zoom the map; press R to rotate the ghost; click-drag to lay a belt line. Click a placed belt to rotate it.' },
   { id: 'miner',     name: 'Miner',        hotkey: '2', glyph: '⛏️', desc: 'Digs ore out of the ground. Must be placed on an ore patch. Ore comes OUT of the green port.' },
-  { id: 'furnace',   name: 'Furnace',      hotkey: '3', glyph: '🔥', desc: 'Smelts ore into plates: iron ore → iron plate, copper ore → copper plate. Ore goes IN the blue ports, plates come OUT of the green port.' },
-  { id: 'assembler', name: 'Assembler',    hotkey: '4', glyph: '⚙️', desc: 'Crafts parts. Ingredients go IN the blue ports, parts come OUT of the green port. Click a placed assembler to switch its recipe.' },
+  { id: 'furnace',   name: 'Furnace',      hotkey: '3', glyph: '🔥', desc: 'Smelts ore into plates: iron ore → iron plate, copper ore → copper plate. Feed ore in from any side except the green port; plates come OUT of the green port.' },
+  { id: 'assembler', name: 'Assembler',    hotkey: '4', glyph: '⚙️', desc: 'Crafts parts. Ingredients go in from any side except the green port; parts come OUT of the green port. Click a placed assembler to switch its recipe.' },
   { id: 'hub',       name: 'Delivery hub', hotkey: '5', glyph: '📦', desc: 'A 2×1 shipping crate. Feed items in from ANY side to fill the current shipment order.' },
   { id: 'rotate',    name: 'Rotate',       hotkey: '6', glyph: '🔄', desc: 'Turns a building clockwise.' },
   { id: 'delete',    name: 'Delete',       hotkey: '7', glyph: '❌', desc: 'Removes a building. Ore patches stay.' },

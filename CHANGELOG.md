@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-29 — Visual art pass: defined belts, machines, and item icons
+- **Belts are real conveyors now:** dark track bed with a center stripe, raised side rails with highlight edges, scrolling flow chevrons that show direction and motion, and metal end rollers where a belt line terminates (segments in a line merge visually — no roller between them).
+- **Items are shape-coded, not just colored squares:** rocky nuggets (ore), flat ingot bars (plates), copper coil rings (wire), toothed gears with hub holes (gears), and pin-out chips (circuits) — each with a dark outline and highlight so they read as physical objects on the belt.
+- **Machines share a proper chassis:** drop shadow, beveled shell, gradient inner panel, and corner rivets. Miner has a spinning 3-blade drill with a static tooth ring and an ore-tint ring showing what it's digging; furnace has a recessed firebox with animated heat glow, rising embers, and a capped chimney; assembler shows the actual recipe product icon on a recessed work pad with a progress ring.
+- **Ports pop:** every port chevron now sits on a dark backing tab so the green OUT / cyan IN indicators read clearly on any machine body color.
+- **Ore patches look rocky:** dark-rimmed nuggets with highlight dots instead of flat speckles; ground tiles have a faint grain so empty space isn't perfectly flat.
+- **Hub polish:** wood-grain gradient body, lid band, and a "CARGO" stencil label on the 2×2 shipping crate.
+- Verified with a headless Node render harness (full render loop + every draw path + ghost previews, all passing). Touched: js/render.js (cache-buster bumped to v=5), index.html.
 ## 2026-09-29 — Full SEO head tags
 
 - Added canonical URL, meta description, Open Graph + Twitter Card tags, and JSON-LD structured data (`WebApplication`) to the page head.

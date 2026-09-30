@@ -1,5 +1,7 @@
 # Changelog
 
+## 2026-09-29 — Hub loses its blue arrows too
+- The delivery hub's cyan IN chevrons are gone as well — the white drop-in badge is now its only marker. All blue port indicators are fully retired; the single green OUT chevron on machines is the only directional marker left in the game. Touched: js/render.js, index.html (cache-buster bumped).
 ## 2026-09-29 — Dropped the blue input arrows
 - Machines no longer show blue IN chevrons — just the single green OUT chevron. Ingredients feed in from any side except the output side, so the three blue markers per machine were pure noise. The delivery hub keeps its cyan input ring (it's input-only — that's its whole identity). Help text and toolbar descriptions updated to match. Touched: js/render.js, js/config.js, index.html (cache-busters bumped).
 ## 2026-09-29 — Delivery hub is 2×1, multi-tile render fix

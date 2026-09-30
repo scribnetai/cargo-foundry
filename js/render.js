@@ -335,7 +335,6 @@ function drawFlames(cx, baseY, w, t) {
 // Input (inward=true): cyan, hugging the edge, pointing inward.
 // Each chevron sits on a dark backing tab so it reads on any body color.
 const PORT_OUT = '#4ade80';
-const PORT_IN = '#38bdf8';
 
 function portChevron(px, py, dir, inward, color) {
   const d = DIRS[dir];
@@ -712,17 +711,6 @@ function drawHub(tx, ty, b) {
   ctx.arc(cx, cy + 2, 6, 0, Math.PI * 2);
   ctx.fill();
   drawArrow(cx, cy, 2, 4, '#ffffff'); // pointing down
-  // IN chevrons along every outer edge, one per tile
-  for (let i = 0; i < b.w; i++) {
-    const ex = px + i * TILE;
-    portChevron(ex, py, 0, true, PORT_IN);                    // top
-    portChevron(ex, py + (b.h - 1) * TILE, 2, true, PORT_IN); // bottom
-  }
-  for (let j = 0; j < b.h; j++) {
-    const ey = py + j * TILE;
-    portChevron(px, ey, 3, true, PORT_IN);                    // left
-    portChevron(px + (b.w - 1) * TILE, ey, 1, true, PORT_IN); // right
-  }
 }
 
 // Arrow pointing in `dir`, centered at (cx, cy), size s
